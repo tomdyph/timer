@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Division Q Timer</title> 
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <div class="app-container-vertical">
+        
+        <div class="content-align-wrapper"> 
+            
+            <div class="top-content-wrapper">
+                <div class="main-controls-area">
+
+                    <div class="timer-display-area">
+                        <div id="timer-display">00:00.00</div>
+                    </div>
+
+                    <div class="body-controls">
+
+                        <div class="control-section manual-controls">
+                            <button id="start-stop-btn" class="manual-btn start-stop">START</button>
+                            <button id="pause-resume-btn" class="manual-btn pause-resume" disabled>PAUSE</button>
+                            <button id="reset-btn" class="manual-btn reset">RESET</button>
+                            <button id="open-signal-btn" class="manual-btn signal-window-btn">Open Timer Window</button>
+                        </div>
+                        
+                        <div class="control-section flash-buttons" style="grid-column: 1 / 3;">
+                            
+                            <label class="flash-label">Press to flash color</label>
+                            
+                            <button id="flash-green-btn" class="flash-btn green-flash">Green</button>
+                            <button id="flash-yellow-btn" class="flash-btn yellow-flash">Yellow</button>
+                            <button id="flash-red-btn" class="flash-btn red-flash">Red</button>
+                        </div>
+
+                        <div class="control-section name-input-section" style="grid-column: 1 / 3;">
+                            <label for="session-name-input">Speaker's Name:</label>
+                            <input type="text" id="session-name-input" placeholder="e.g., John's Evaluation">
+                        </div>
+
+                        <div class="control-section presets-section" style="grid-column: 1 / 2;">
+                            <h3>Speech Preset</h3>
+                            <div id="speech-presets" class="preset-group">
+                                </div>
+                            
+                            <h3>Evaluation Preset</h3>
+                            <div id="evaluation-presets" class="preset-group">
+                                <button id="tt-eval-btn" class="preset-btn">Table Topics Evaluation</button>
+                                <button class="preset-btn">Speech Evaluation</button>
+                            </div>
+
+                            <h3>Breaks Preset</h3>
+                            <div id="breaks-presets" class="preset-group">
+                                </div>
+                        </div>
+
+                        <div class="control-section custom-section" id="custom-section-id" style="grid-column: 2 / 3;">
+                            
+                            <h3>Input Custom Time (min/sec)</h3>
+                            <div class="custom-inputs-grid-new">
+                                
+                                <div class="custom-label green-flash">GREEN</div>
+                                <input type="number" id="custom-g-min" class="custom-input" value="0" min="0">
+                                <span class="input-label">mins</span>
+                                <input type="number" id="custom-g-sec" class="custom-input" value="0" min="0" max="59">
+                                <span class="input-label">sec</span>
+
+                                <div class="custom-label yellow-flash">YELLOW</div>
+                                <input type="number" id="custom-y-min" class="custom-input" value="0" min="0">
+                                <span class="input-label">mins</span>
+                                <input type="number" id="custom-y-sec" class="custom-input" value="0" min="0" max="59">
+                                <span class="input-label">sec</span>
+
+                                <div class="custom-label red-flash">RED</div>
+                                <input type="number" id="custom-r-min" class="custom-input" value="0" min="0">
+                                <span class="input-label">mins</span>
+                                <input type="number" id="custom-r-sec" class="custom-input" value="0" min="0" max="59">
+                                <span class="input-label">sec</span>
+                            </div>
+                            
+                            <div id="time-weather-display"></div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="records-sidebar records-sidebar-bottom records-visible" id="records-sidebar">
+                <h2>Session Records</h2>
+                <ul id="records-list">
+                    </ul>
+                <div class="records-button-group">
+                    <button id="copy-all-records-btn" class="manual-btn copy-all-records-btn">Copy Records</button>
+                    <button id="clear-records-btn" class="manual-btn clear-records-btn">Clear Records</button>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

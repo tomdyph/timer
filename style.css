@@ -1,0 +1,309 @@
+/* --- Poppins Font Import --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* --- Global & Layout Setup --- */
+:root {
+    /* Define colors once */
+    --color-charcoal: #333333; /* Default popup background */
+    --color-light-default: #faf9f6; /* Cultured color for Timer Display background */
+    --color-control-bg: #008080; /* Teal for main controls background */
+    --color-dark-bg: #282c34;
+    --color-medium-bg: #444951; /* Neutral Gray for inner controls */
+    --color-green: #4CAF50; 
+    --color-yellow: #E1AD01; 
+    --color-red: #F44336; 
+    --color-blue-accent: #61dafb;
+    --color-white: #FFFFFF;
+    --color-black: #000000;
+}
+
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    background-color: var(--color-dark-bg);
+    color: var(--color-white);
+    padding: 20px;
+}
+
+.app-container-vertical {
+    display: flex;
+    flex-direction: column; 
+    max-width: 1200px;
+    width: 100%;
+    gap: 20px;
+}
+
+/* Unified wrapper for absolute 800px centering and alignment */
+.content-align-wrapper {
+    max-width: 800px; /* Force Max Width */
+    width: 100%; 
+    margin: 0 auto; /* Center the entire content block */
+    display: flex; 
+    flex-direction: column;
+    gap: 20px; 
+}
+
+.top-content-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/* --- Part 1 & Part 2: Main Controls Area --- */
+.main-controls-area {
+    width: 100%; 
+    flex-shrink: 0;
+}
+
+/* Part 1: Timer Display Area */
+.timer-display-area {
+    background-color: var(--color-light-default); 
+    padding: 30px 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+#timer-display {
+    font-family: Arial, sans-serif; 
+    font-size: 6em;
+    font-weight: bold;
+    color: var(--color-black); 
+    font-variant-numeric: tabular-nums; 
+    transition: color 0.3s; 
+}
+
+/* Millisecond styling */
+#timer-display .ms-small {
+    font-size: 25%;
+    opacity: 0.8;
+}
+
+/* Part 2: Body of Controls */
+.body-controls {
+    background-color: var(--color-control-bg); /* TEAL COLOR */
+    padding: 20px;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.control-section {
+    background-color: var(--color-medium-bg); 
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* --- Custom Input Section --- */
+.custom-section h3 {
+    margin-top: 0;
+}
+.custom-inputs-grid-new {
+    display: grid;
+    /* 5 columns: Label | Input Min | Label Min | Input Sec | Label Sec */
+    grid-template-columns: 80px 1fr auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 30px; /* INCREASED VERTICAL SPACE */
+}
+.custom-inputs-grid-new .custom-label {
+    grid-column: 1 / 2; 
+    text-align: center; 
+    padding: 4px 0; 
+    border-radius: 4px; 
+    font-weight: 600;
+}
+/* Custom Color Label BACKGROUNDS */
+.custom-inputs-grid-new .custom-label.green-flash { 
+    background-color: var(--color-green); 
+    color: var(--color-white); 
+} 
+.custom-inputs-grid-new .custom-label.yellow-flash { 
+    background-color: var(--color-yellow); 
+    color: var(--color-black); 
+} 
+.custom-inputs-grid-new .custom-label.red-flash { 
+    background-color: var(--color-red); 
+    color: var(--color-white); 
+}
+
+.custom-inputs-grid-new .input-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+    text-align: left;
+}
+.custom-inputs-grid-new input {
+    text-align: right;
+}
+
+/* --- Time/Weather Display Styles --- */
+#time-weather-display {
+    grid-column: 1 / 6; /* Span the full width of the custom input grid */
+    text-align: center;
+    font-size: 0.95em;
+    padding: 15px 0 0 0; /* Add top padding */
+    border-top: 1px solid #555c69; /* Restore divider */
+    margin-top: 5px; /* Adjust margin for alignment */
+}
+#time-weather-display p {
+    margin: 3px 0;
+}
+
+
+/* --- Global Disabled State (ENFORCES WHITE TEXT) --- */
+.preset-btn:disabled, .custom-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.5; 
+    color: var(--color-white) !important; 
+}
+.custom-input:disabled {
+    background-color: #555c69; 
+}
+
+/* --- Manual Button Styles (ADDED ANIMATION) --- */
+.manual-controls {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    grid-column: 1 / 3; 
+}
+.manual-btn {
+    padding: 12px 15px; 
+    font-size: 1.0em;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, opacity 0.2s, transform 0.1s; 
+    min-width: 100px;
+}
+.manual-btn:active {
+    transform: scale(0.95); /* Button press animation */
+}
+
+.start-stop { background-color: var(--color-green); color: var(--color-white); }
+.pause-resume { 
+    background-color: var(--color-yellow); 
+    color: var(--color-black); 
+} 
+.reset { background-color: var(--color-red); color: var(--color-white); }
+.signal-window-btn { 
+    background-color: var(--color-charcoal); 
+    color: var(--color-white); 
+    border: 1px solid var(--color-white);
+} 
+
+/* --- Flash Button Styling (UPDATED LAYOUT) --- */
+.flash-buttons {
+    display: flex;
+    align-items: center; /* Vertically center the label and buttons */
+    justify-content: space-between; /* Space out the label and the button group */
+    gap: 10px; /* Gap between the label and the button group */
+}
+
+.flash-label {
+    font-weight: bold;
+    font-size: 1em;
+    white-space: nowrap; /* Prevent wrapping */
+    flex-basis: 30%; /* Allocate space for the label */
+}
+
+/* Wrap buttons into a group for internal spacing control */
+.flash-buttons button {
+    flex-grow: 1; /* Ensure buttons fill the remaining space */
+    margin: 0 5px; /* Add small margin between buttons */
+}
+
+.flash-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.1s; 
+}
+.flash-btn:active {
+    transform: scale(0.95); /* Button press animation */
+}
+
+.green-flash { background-color: var(--color-green); color: var(--color-white); }
+.yellow-flash { background-color: var(--color-yellow); 
+    color: var(--color-black); 
+} 
+.red-flash { background-color: var(--color-red); color: var(--color-white); }
+
+/* --- Preset Button Styling (ADDED ANIMATION) --- */
+.preset-btn {
+    transition: transform 0.1s;
+}
+.preset-btn:active {
+    transform: scale(0.95); /* Button press animation */
+}
+/* Ensure the button used for copying records also has the animation */
+.copy-all-records-btn:active, .clear-records-btn:active {
+     transform: scale(0.95);
+}
+
+/* --- Part 3: Record History Area (BOTTOM LAYOUT) --- */
+
+.records-sidebar-bottom {
+    display: flex; 
+    flex-direction: column; 
+    
+    width: 100%; 
+    background-color: var(--color-medium-bg);
+    padding: 20px; 
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    
+    max-height: 400px; 
+}
+
+#records-list {
+    list-style: none;
+    padding: 0; 
+    flex-grow: 1; 
+    overflow-y: auto; 
+}
+.record-item {
+    background-color: #555c69; 
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    word-break: break-all;
+    line-height: 1.4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+/* New button group layout for records */
+.records-button-group {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 15px;
+}
+.records-button-group .manual-btn {
+    width: 50%;
+    min-width: 0;
+}
+
+.clear-records-btn {
+    background-color: var(--color-red);
+    color: var(--color-white);
+}
+
+.copy-all-records-btn {
+    background-color: var(--color-blue-accent);
+    color: var(--color-white);
+}
