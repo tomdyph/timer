@@ -14,9 +14,9 @@ const WEATHER_DATA = '24°C, 90% humidity, Wind 3 mph N'; // Static data from se
 const COLOR_DEFAULT_BG = '#FFFFFF';
 const COLOR_DEFAULT_DIGIT = '#000000';
 const COLOR_CHARCOAL = '#333333';
-const COLOR_GREEN = '#4CAF50';
-const COLOR_YELLOW = '#FFEB3B';
-const COLOR_RED = '#F44336';
+const COLOR_GREEN = '#4CAF50'; 
+const COLOR_YELLOW = '#E1AD01'; 
+const COLOR_RED = '#F44336'; 
 const COLOR_WHITE = '#FFFFFF';
 const COLOR_BLACK = '#000000';
 
@@ -24,7 +24,8 @@ const COLOR_BLACK = '#000000';
 const display = document.getElementById('timer-display'); 
 const sessionNameInput = document.getElementById('session-name-input');
 const timerDisplayArea = document.querySelector('.timer-display-area'); 
-const timeWeatherDisplay = document.getElementById('time-weather-display'); // NEW REFERENCE
+const timeWeatherDisplay = document.getElementById('time-weather-display'); 
+const recordsList = document.getElementById('records-list'); // Record History
 
 // Manual Controls
 const startStopBtn = document.getElementById('start-stop-btn');
@@ -32,9 +33,9 @@ const pauseResumeBtn = document.getElementById('pause-resume-btn');
 const resetBtn = document.getElementById('reset-btn');
 const openSignalBtn = document.getElementById('open-signal-btn');
 
-// Records Toggle
-const recordsSidebar = document.getElementById('records-sidebar');
+// Records Buttons
 const clearRecordsBtn = document.getElementById('clear-records-btn');
+const copyAllRecordsBtn = document.getElementById('copy-all-records-btn'); 
 
 // Custom Inputs (Part 2C)
 const customInputs = {
@@ -49,8 +50,6 @@ const evaluationPresetsDiv = document.getElementById('evaluation-presets');
 const breaksPresetsDiv = document.getElementById('breaks-presets');
 const ttEvalButton = document.getElementById('tt-eval-btn');
 
-// Record History (Part 3)
-const recordsList = document.getElementById('records-list');
 
 // --- 3. Utility Functions ---
 
@@ -77,6 +76,42 @@ function formatTime(totalMilliseconds) {
 
     return `${formattedMinutes}:${formattedSeconds}.<span class="ms-small">${formattedHundredths}</span>`;
 }
+
+function formatTimeForRecord(totalMilliseconds) {
+    const safeMilliseconds = Math.max(0, totalMilliseconds);
+    const totalSeconds = Math.floor(safeMilliseconds / 1000);
+    const milliseconds = safeMilliseconds % 1000;
+    
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const hundredths = Math.floor(milliseconds / 10); 
+
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+    const formattedHundredths = String(hundredths).padStart(2, '0');
+
+    return `${formattedMinutes}:${formattedSeconds}.${formattedHundredths}`;
+}
+
+// Validation function for Custom Markers
+function validateCustomMarkers() {
+    const gMs = toMs(parseInt(customInputs.greenMin.value) || 0, parseInt(customInputs.greenSec.value) || 0);
+    const yMs = toMs(parseInt(customInputs.yellowMin.value) || 0, parseInt(customInputs.yellowSec.value) || 0);
+    const rMs = toMs(parseInt(customInputs.redMin.value) || 0, parseInt(customInputs.redSec.value) || 0);
+
+    if (rMs < yMs || yMs < gMs) {
+        alert("Validation Error: Custom marker times must be in order (Green ≤ Yellow ≤ Red). Please adjust your inputs.");
+        
+        // Reset current preset markers if invalid, preventing startTimer from using invalid values
+        currentPresetMarkers = { green: 0, yellow: 0, red: 0 };
+        return false;
+    }
+    
+    // If valid, update the global markers
+    currentPresetMarkers = { green: gMs, yellow: yMs, red: rMs };
+    return true;
+}
+
 
 function updateColorState() {
     let newBgColor = COLOR_CHARCOAL; 
@@ -147,9 +182,9 @@ function updateColorState() {
 function tick() {
     elapsedTimeMs += UPDATE_INTERVAL; 
     
+    // FIX: Timer continues running if popup is closed.
     if (timerWindow && timerWindow.closed) {
-        pauseTimer();
-        timerWindow = null;
+        timerWindow = null; 
     }
 
     display.innerHTML = formatTime(elapsedTimeMs); 
@@ -191,6 +226,22 @@ function startStopTimer() {
     if (startStopBtn.textContent === "STOP") {
         stopTimer(); 
     } else {
+        // Validation check for START
+        
+        // 1. Check if a preset button is active (meaning a valid preset time is loaded)
+        let presetElement = document.querySelector('.preset-btn.active');
+        
+        if (!presetElement) {
+            // 2. If no preset is active, we are using Custom Inputs. Validate them.
+            if (!validateCustomMarkers()) {
+                return; // Validation failed, do not start the timer
+            }
+        } else if (currentPresetMarkers.red === 0) {
+            // Handle edge case where a preset might have been cleared or reset but remains active
+            alert("Please select a valid preset or input custom time before starting.");
+            return;
+        }
+
         startTimer(); 
     }
 }
@@ -223,8 +274,15 @@ function stopTimer() {
     let presetElement = document.querySelector('.preset-btn.active');
     let presetName = presetElement ? presetElement.textContent : 'Custom';
     
-    createRecord(sessionNameInput.value || 'Untitled Speaker', formatTime(timeRecordedMs), presetName);
-
+    // Check if the preset is a Break Preset and skip recording if true
+    
+    const breakPresetNames = PRESETS.breaks.map(p => p.name);
+    
+    if (presetName === 'Custom' || !breakPresetNames.includes(presetName)) {
+        // Only create a record if it's Custom or NOT a recognized Break Preset
+        createRecord(sessionNameInput.value || 'Untitled Speaker', formatTimeForRecord(timeRecordedMs), presetName);
+    }
+    
     resetTimer(); 
 }
 
@@ -243,8 +301,10 @@ function resetTimer() {
         timerIntervalId = null;
     }
     
+    // Ensure inputs are reset
     Object.values(customInputs).forEach(input => input.value = 0);
     
+    // Ensure all buttons are inactive on reset
     document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
     
     currentPresetMarkers = { green: 0, yellow: 0, red: 0 };
@@ -279,12 +339,32 @@ openSignalBtn.addEventListener('click', openSignalWindowHandler);
 // --- NEW HANDLER for Clear All Records Button (Part 3) ---
 
 function clearRecords() {
-    if (confirm("Are you sure you want to clear ALL session records? This action cannot be undone.")) {
-        recordsList.innerHTML = ''; 
-        alert("All session records have been cleared.");
-    }
+    // MODIFIED: Removed confirm and alert dialogs.
+    recordsList.innerHTML = ''; 
 }
 clearRecordsBtn.addEventListener('click', clearRecords);
+
+// --- NEW HANDLER for Copy All Records Button (Part 3) ---
+function copyAllRecords() {
+    // Collects text content from all list items, joined by newline
+    const records = Array.from(recordsList.children).map(li => li.textContent).join('\n');
+    
+    if (!records) {
+        alert("No records to copy!");
+        return;
+    }
+
+    navigator.clipboard.writeText(records).then(() => {
+        copyAllRecordsBtn.textContent = '✅ Copied!';
+        setTimeout(() => {
+            copyAllRecordsBtn.textContent = 'Copy Records';
+        }, 1500);
+    }).catch(err => {
+        console.error('Could not copy text: ', err);
+        copyAllRecordsBtn.textContent = '❌ Failed';
+    });
+}
+copyAllRecordsBtn.addEventListener('click', copyAllRecords);
 
 
 // --- 6. Part 2A: Temporary Background Color Change ---
@@ -349,17 +429,16 @@ const PRESETS = {
 };
 
 function loadPreset(gSec, ySec, rSec) {
-    // ALWAYS reset the timer first
-    resetTimer();
+    // FIX: Update Custom Input fields to show the loaded preset times
+    updateCustomInputs(gSec, ySec, rSec); 
     
-    updateCustomInputs(gSec, ySec, rSec);
-
     currentPresetMarkers = {
         green: gSec * 1000,
         yellow: ySec * 1000,
         red: rSec * 1000
     };
     
+    // Reset timer state but keep active class intact
     elapsedTimeMs = 0; 
     display.innerHTML = formatTime(elapsedTimeMs);
     display.style.color = COLOR_DEFAULT_DIGIT;
@@ -367,14 +446,20 @@ function loadPreset(gSec, ySec, rSec) {
     startTimer(); 
 }
 
-// 7.1 Dynamic Table Topics Evaluation Logic
-ttEvalButton.addEventListener('click', () => {
+// 7.1 Dynamic Table Topics Evaluation Logic (Max limit 20)
+ttEvalButton.addEventListener('click', (e) => {
+    // 1. Manage Active Class
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+    e.currentTarget.classList.add('active'); 
+    
     setPresetAndCustomInputStates(true);
-    let numSpeakers = parseInt(prompt("Enter number of Table Topics speakers (1-10):"), 10);
+    // Max limit is 20
+    let numSpeakers = parseInt(prompt("Enter number of Table Topics speakers (1-20):"), 10);
     setPresetAndCustomInputStates(false);
 
-    if (isNaN(numSpeakers) || numSpeakers < 1 || numSpeakers > 10) {
-        alert("Invalid number of speakers. Must be between 1 and 10.");
+    if (isNaN(numSpeakers) || numSpeakers < 1 || numSpeakers > 20) {
+        alert("Invalid number of speakers. Must be between 1 and 20.");
+        e.currentTarget.classList.remove('active'); // Remove active class if validation fails
         return;
     }
 
@@ -388,17 +473,11 @@ ttEvalButton.addEventListener('click', () => {
         rSec = 3 * MINUTE;      // 180 seconds (3:00)
     } else {
         // N >= 2 Speakers: Scaled limits
-        // R = 2 mins + N mins
         rSec = (2 * MINUTE) + (numSpeakers * MINUTE);
-        // Y = R - 1 min
         ySec = rSec - MINUTE;
-        // G = Y - 1 min
         gSec = ySec - MINUTE;
     }
     
-    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
-    ttEvalButton.classList.add('active');
-
     loadPreset(gSec, ySec, rSec);
 });
 
@@ -412,8 +491,9 @@ function renderPresets() {
             btn.className = 'preset-btn';
             btn.textContent = preset.name;
             btn.addEventListener('click', (e) => {
+                // 1. Manage Active Class
                 document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
+                e.currentTarget.classList.add('active');
                 
                 loadPreset(preset.green, preset.yellow, preset.red);
             });
@@ -422,17 +502,21 @@ function renderPresets() {
         });
     });
     
+    // Specific handler for "Speech Evaluation" button
     document.querySelector('.preset-group:has(#tt-eval-btn) button:not(#tt-eval-btn)').addEventListener('click', (e) => {
         const preset = PRESETS.evaluation.find(p => p.name === "Speech Evaluation");
+        
+        // 1. Manage Active Class
         document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
+        e.currentTarget.classList.add('active');
+        
         loadPreset(preset.green, preset.yellow, preset.red);
     });
 }
 renderPresets();
 
 
-// --- 8. Part 2C: Custom Input Logic ---
+// --- 8. Part 2C: Custom Input Logic (Validation removed from input event) ---
 
 function updateCustomInputs(gSec, ySec, rSec) {
     let g = toMinSec(gSec);
@@ -448,20 +532,14 @@ function updateCustomInputs(gSec, ySec, rSec) {
 
 document.querySelectorAll('.custom-input').forEach(input => {
     input.addEventListener('input', () => {
+        // When a custom input is changed, remove active status from all preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
         
+        // Only update markers and display state. Validation is strictly on START click.
         const gMs = toMs(parseInt(customInputs.greenMin.value) || 0, parseInt(customInputs.greenSec.value) || 0);
         const yMs = toMs(parseInt(customInputs.yellowMin.value) || 0, parseInt(customInputs.yellowSec.value) || 0);
         const rMs = toMs(parseInt(customInputs.redMin.value) || 0, parseInt(customInputs.redSec.value) || 0);
-
-        if (rMs < yMs || yMs < gMs) {
-            alert("Custom marker times must be in order: Green <= Yellow <= Red.");
-            currentPresetMarkers = { green: 0, yellow: 0, red: 0 };
-            elapsedTimeMs = 0;
-            display.textContent = formatTime(0);
-            return;
-        }
-
+        
         currentPresetMarkers = { green: gMs, yellow: yMs, red: rMs };
         
         if (timerIntervalId === null) {
@@ -485,25 +563,7 @@ function createRecord(name, time, preset) {
     textSpan.textContent = recordText;
     li.appendChild(textSpan);
     
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'copy-btn';
-    copyBtn.textContent = '📋 Copy';
-    copyBtn.onclick = () => copyRecordToClipboard(recordText, copyBtn);
-    
-    li.appendChild(copyBtn);
     recordsList.prepend(li);
-}
-
-function copyRecordToClipboard(text, button) {
-    navigator.clipboard.writeText(text).then(() => {
-        button.textContent = '✅ Copied!';
-        setTimeout(() => {
-            button.textContent = '📋 Copy';
-        }, 1500);
-    }).catch(err => {
-        console.error('Could not copy text: ', err);
-        button.textContent = '❌ Failed';
-    });
 }
 
 
@@ -512,7 +572,7 @@ function copyRecordToClipboard(text, button) {
 function updateDateTimeWeather() {
     const now = new Date();
     
-    // Format Date (e.g., Wednesday, Dec 10, 2025)
+    // Format Date (e.g., Thursday, Dec 11, 2025)
     const optionsDate = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
     const formattedDate = now.toLocaleDateString('en-US', optionsDate);
 
@@ -522,7 +582,7 @@ function updateDateTimeWeather() {
 
     // Combine output
     const output = `
-        <p>${formattedDate} | ${formattedTime}</p>
+        <p>Current: ${formattedDate} | ${formattedTime}</p>
         <p>Location: ${LOCATION_NAME}</p>
         <p>Weather: ${WEATHER_DATA}</p>
     `;
@@ -589,13 +649,8 @@ function openTimerWindow(initialBgColor) {
             timerWindow.document.write(initialWindowContent);
             timerWindow.document.close();
             
-            // PROTECTION AGAINST ACCIDENTAL CLOSURE:
-            timerWindow.onbeforeunload = () => {
-                if (timerIntervalId !== null) {
-                    // Returning a string triggers the confirmation prompt
-                    return "The timer is currently running. Closing this window will pause the main timer."; 
-                }
-            };
+            // Set initial status and color immediately upon opening
+            updateColorState(); 
         }
     } else {
         // If window exists, just bring it to the front 
@@ -617,15 +672,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial call to set the time/weather display
     updateDateTimeWeather(); 
-    
-    openTimerWindow(COLOR_CHARCOAL);
-    
-    if (timerWindow && !timerWindow.closed) {
-        const h1 = timerWindow.document.getElementById('popup-text');
-        if (h1) {
-            h1.textContent = "TIMER"; 
-            h1.style.color = COLOR_WHITE;
-            timerWindow.document.body.style.backgroundColor = COLOR_CHARCOAL;
-        }
-    }
 });
